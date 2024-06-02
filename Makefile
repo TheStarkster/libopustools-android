@@ -17,6 +17,14 @@ CFLAGS := -DUSE_ALLOCA $(CFLAGS)
 
 ###################### END OF OPTIONS ######################
 
+
+TOOLCHAIN_PREFIX = /Applications/Xcode.app/Contents/Developer/Platforms/iPhoneOS.platform/Developer/SDKs/iPhoneOS17.0.sdk
+CC = $(TOOLCHAIN_PREFIX)clang -arch arm64 -isysroot $(shell xcrun --sdk iphoneos --show-sdk-path)
+AR = $(TOOLCHAIN_PREFIX)ar
+RANLIB = $(TOOLCHAIN_PREFIX)ranlib
+CFLAGS += -arch arm64 -isysroot $(shell xcrun --sdk iphoneos --show-sdk-path)
+
+
 -include package_version
 
 include silk_sources.mk

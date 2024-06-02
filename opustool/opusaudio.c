@@ -3,7 +3,7 @@
 #include "../ogg/ogg.h"
 #include "opus.h"
 #include "../opusfile/opusfile.h"
-#include "log.h"
+// #include "LOG.h"
 
 #ifndef max
 #define max(x, y) ((x) > (y)) ? (x) : (y)
@@ -283,13 +283,13 @@ void cleanupRecorder() {
     memset(&op, 0, sizeof(ogg_packet));
     memset(&og, 0, sizeof(ogg_page));
 
-    LOGD("Recording ends!!!");
+    // LOGD("Recording ends!!!");
 }
 
 int initRecorder(const char *path) {
     cleanupRecorder();
 
-    LOGD("in Recorder, path: %s", path);
+    // LOGD("in Recorder, path: %s", path);
     if (!path) {
         return 0;
     }
@@ -325,7 +325,7 @@ int initRecorder(const char *path) {
 
  //   frame_size=frame_size/(48000/coding_rate);
     if (rate != coding_rate) {
-        LOGE("Invalid rate");
+        // LOGE("Invalid rate");
         return 0;
     }
 
@@ -338,7 +338,7 @@ int initRecorder(const char *path) {
     int result = OPUS_OK;
     _encoder = opus_encoder_create(coding_rate, 1, OPUS_APPLICATION_AUDIO, &result);
     if (result != OPUS_OK) {
-        LOGE("Error cannot create encoder: %s", opus_strerror(result));
+        // LOGE("Error cannot create encoder: %s", opus_strerror(result));
         return 0;
     }
 
@@ -347,21 +347,21 @@ int initRecorder(const char *path) {
 
     result = opus_encoder_ctl(_encoder, OPUS_SET_BITRATE(bitrate));
     if (result != OPUS_OK) {
-        LOGE("Error OPUS_SET_BITRATE returned: %s", opus_strerror(result));
+        // LOGE("Error OPUS_SET_BITRATE returned: %s", opus_strerror(result));
         return 0;
     }
 
 #ifdef OPUS_SET_LSB_DEPTH
     result = opus_encoder_ctl(_encoder, OPUS_SET_LSB_DEPTH(max(8, min(24, inopt.samplesize))));
     if (result != OPUS_OK) {
-        LOGE("Warning OPUS_SET_LSB_DEPTH returned: %s", opus_strerror(result));
+        // LOGE("Warning OPUS_SET_LSB_DEPTH returned: %s", opus_strerror(result));
     }
 #endif
 
     opus_int32 lookahead;
     result = opus_encoder_ctl(_encoder, OPUS_GET_LOOKAHEAD(&lookahead));
     if (result != OPUS_OK) {
-        LOGE("Error OPUS_GET_LOOKAHEAD returned: %s", opus_strerror(result));
+        // LOGE("Error OPUS_GET_LOOKAHEAD returned: %s", opus_strerror(result));
         return 0;
     }
 
@@ -370,7 +370,7 @@ int initRecorder(const char *path) {
     inopt.extraout = (int)(header.preskip * (rate / 48000.0));
 
     if (ogg_stream_init(&os, rand()) == -1) {
-        LOGE("Error: stream init failed");
+        // LOGE("Error: stream init failed");
         return 0;
     }
 
@@ -391,7 +391,7 @@ int initRecorder(const char *path) {
 
         int pageBytesWritten = writeOggPage(&og, _fileOs);
         if (pageBytesWritten != og.header_len + og.body_len) {
-            LOGE("Error: failed writing header to output stream");
+            // LOGE("Error: failed writing header to output stream");
             return 0;
         }
         bytes_written += pageBytesWritten;
@@ -414,7 +414,7 @@ int initRecorder(const char *path) {
 
         int writtenPageBytes = writeOggPage(&og, _fileOs);
         if (writtenPageBytes != og.header_len + og.body_len) {
-            LOGE("Error: failed writing header to output stream");
+            // LOGE("Error: failed writing header to output stream");
             return 0;
         }
 
@@ -459,7 +459,7 @@ int writeFrame(uint8_t *framePcmBytes, unsigned int frameByteCount) {
         }
 
         if (nbBytes < 0) {
-            LOGE("Encoding failed: %s. Aborting.", opus_strerror(nbBytes));
+            // LOGE("Encoding failed: %s. Aborting.", opus_strerror(nbBytes));
             return 0;
         }
 
@@ -476,7 +476,7 @@ int writeFrame(uint8_t *framePcmBytes, unsigned int frameByteCount) {
         last_segments -= og.header[26];
         int writtenPageBytes = writeOggPage(&og, _fileOs);
         if (writtenPageBytes != og.header_len + og.body_len) {
-            LOGE("Error: failed writing data to output stream");
+            // LOGE("Error: failed writing data to output stream");
             return 0;
         }
         bytes_written += writtenPageBytes;
@@ -502,14 +502,14 @@ int writeFrame(uint8_t *framePcmBytes, unsigned int frameByteCount) {
         last_segments -= og.header[26];
         int writtenPageBytes = writeOggPage(&og, _fileOs);
         if (writtenPageBytes != og.header_len + og.body_len) {
-            LOGE("Error: failed writing data to output stream");
+            // LOGE("Error: failed writing data to output stream");
             return 0;
         }
         bytes_written += writtenPageBytes;
         pages_out++;
     }
 
-    LOGD("last byte_written is %lld", bytes_written);
+    // LOGD("last byte_written is %lld", bytes_written);
     return 1;
 }
 //
@@ -554,7 +554,7 @@ int seekPlayer(float position) {
     }
     int result = op_pcm_seek(_opusFile, (ogg_int64_t)(position * _totalPcmDuration));
     if (result != OPUS_OK) {
-        LOGE("op_pcm_seek failed: %d", result);
+        // LOGE("op_pcm_seek failed: %d", result);
     }
     ogg_int64_t pcmPosition = op_pcm_tell(_opusFile);
     _currentPcmOffset = pcmPosition;
@@ -584,7 +584,7 @@ int initPlayer(const char *path) {
     int openError = OPUS_OK;
     _opusFile = op_open_file(path, &openError);
     if (!_opusFile || openError != OPUS_OK) {
-        LOGE("op_open_file failed: %d", openError);
+        // LOGE("op_open_file failed: %d", openError);
         cleanupPlayer();
         return 0;
     }
@@ -616,7 +616,7 @@ void fillBuffer(uint8_t *buffer, int capacity) {
                     writtenOutputBytes += readSamples * 2 * _channel_count;
                 } else {
                     if (readSamples < 0) {
-                        LOGE("op_read failed: %d", readSamples);
+                        // LOGE("op_read failed: %d", readSamples);
                     }
                     endOfFileReached = 1;
                     break;
